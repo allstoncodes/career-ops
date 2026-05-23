@@ -58,6 +58,16 @@ for (const f of mjsFiles) {
   }
 }
 
+// scripts/ and scripts/lib/ ESM
+for (const dir of ['scripts', 'scripts/lib']) {
+  if (!existsSync(join(ROOT, dir))) continue;
+  for (const f of readdirSync(join(ROOT, dir)).filter(x => x.endsWith('.mjs'))) {
+    const rel = `${dir}/${f}`;
+    if (run('node', ['--check', rel]) !== null) pass(`${rel} syntax OK`);
+    else fail(`${rel} has syntax errors`);
+  }
+}
+
 // ── 2. SCRIPT EXECUTION ─────────────────────────────────────────
 
 console.log('\n2. Script execution (graceful on empty data)');
@@ -312,6 +322,28 @@ if (fileExists('VERSION')) {
   }
 } else {
   fail('VERSION file missing');
+}
+
+// ── 11. DERIVE SCRIPT ────────────────────────────────────────────
+
+console.log('\n11. Derive-from-job-profile');
+
+if (fileExists('scripts/derive-from-job-profile.mjs')) {
+  const testFiles = readdirSync(join(ROOT, 'scripts/test'))
+    .filter(f => f.endsWith('.test.mjs'))
+    .map(f => `scripts/test/${f}`);
+  const unit = run('node', ['--test', ...testFiles]);
+  if (unit !== null) pass('derive unit tests pass');
+  else fail('derive unit tests FAILED');
+
+  const dry = run('node', [
+    'scripts/derive-from-job-profile.mjs', '--all', '--dry-run',
+    '--source', 'scripts/test/fixtures/job-profile.fixture.md',
+  ]);
+  if (dry !== null && /profile\.yml/.test(dry)) pass('derive --dry-run runs clean on fixture');
+  else fail('derive --dry-run failed on fixture');
+} else {
+  warn('scripts/derive-from-job-profile.mjs not found');
 }
 
 // ── SUMMARY ─────────────────────────────────────────────────────

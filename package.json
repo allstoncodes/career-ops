@@ -15,7 +15,10 @@
     "rollback": "node update-system.mjs rollback",
     "liveness": "node check-liveness.mjs",
     "scan": "node scan.mjs",
-    "gemini:eval": "node gemini-eval.mjs"
+    "gemini:eval": "node gemini-eval.mjs",
+    "derive": "node scripts/derive-from-job-profile.mjs",
+    "derive:check": "node scripts/derive-from-job-profile.mjs --all --dry-run",
+    "test:derive": "node --test scripts/test/*.test.mjs"
   },
   "keywords": [
     "ai",
