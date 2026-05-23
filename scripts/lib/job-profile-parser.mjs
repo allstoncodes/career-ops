@@ -80,6 +80,26 @@ export function parseBulletList(lines) {
   return out;
 }
 
+/**
+ * Parse bullets grouped under "**Label**" lines into a Map(label -> string[]).
+ * e.g. "**Primary** (roles):" then "- A" "- B" -> { Primary: ['A','B'] }.
+ */
+export function parseLabeledBullets(lines) {
+  const out = new Map();
+  let label = null;
+  for (const line of lines) {
+    const lm = /^\s*\*\*(.+?)\*\*/.exec(line);
+    if (lm) {
+      label = lm[1].trim();
+      out.set(label, []);
+      continue;
+    }
+    const bm = /^\s*-\s+(.+)$/.exec(line);
+    if (bm && label) out.get(label).push(bm[1].trim());
+  }
+  return out;
+}
+
 /** Split a section body into "### Heading" subsections. */
 export function parseSubsections(lines) {
   const subs = [];
