@@ -1,0 +1,4 @@
+Senior Software Engineer, Inference — Acme AI (San Francisco / Remote)
+
+We are hiring an engineer to optimize LLM inference: kernel-level performance,
+memory packing, and serving throughput. Python + CUDA. Competitive comp + equity.
