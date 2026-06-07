@@ -87,3 +87,27 @@ test('callModel returns the mock client text with no network (token-free)', asyn
   const text = await callModel({ client, systemPrompt: 'sys', jdText: 'jd' });
   assert.equal(text, 'hello from mock');
 });
+
+test('renderReport strips ALL summary blocks, even a duplicated one', () => {
+  const dup = `Body line.
+---SCORE_SUMMARY---
+COMPANY: A
+ROLE: R
+SCORE: 3.0
+ARCHETYPE: X
+LEGITIMACY: High Confidence
+---END_SUMMARY---
+trailing body
+---SCORE_SUMMARY---
+COMPANY: A
+ROLE: R
+SCORE: 3.0
+ARCHETYPE: X
+LEGITIMACY: High Confidence
+---END_SUMMARY---`;
+  const md = renderReport({
+    company: 'A', role: 'R', score: '3.0', archetype: 'X', legitimacy: 'High Confidence',
+    modelName: 'gemini-2.0-flash', evaluationText: dup, date: '2026-06-07',
+  });
+  assert.doesNotMatch(md, /SCORE_SUMMARY/);
+});

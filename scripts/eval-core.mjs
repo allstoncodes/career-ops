@@ -113,7 +113,7 @@ export function parseScoreSummary(text) {
  * from the body (its values live in the header fields).
  */
 export function renderReport({ company, role, score, archetype, legitimacy, modelName, evaluationText, date }) {
-  const body = evaluationText.replace(/---SCORE_SUMMARY---[\s\S]*?---END_SUMMARY---/, '').trim();
+  const body = evaluationText.replace(/---SCORE_SUMMARY---[\s\S]*?---END_SUMMARY---/g, '').trim();
   return `# Evaluation: ${company} — ${role}
 
 **Date:** ${date}
