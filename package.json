@@ -5,6 +5,7 @@
   "scripts": {
     "doctor": "node doctor.mjs",
     "verify": "node verify-pipeline.mjs",
+    "smoke": "node smoke.mjs",
     "normalize": "node normalize-statuses.mjs",
     "dedup": "node dedup-tracker.mjs",
     "merge": "node merge-tracker.mjs",
@@ -18,7 +19,8 @@
     "gemini:eval": "node gemini-eval.mjs",
     "derive": "node scripts/derive-from-job-profile.mjs",
     "derive:check": "node scripts/derive-from-job-profile.mjs --all --dry-run",
-    "test:derive": "node --test scripts/test/*.test.mjs"
+    "test:derive": "node --test scripts/test/*.test.mjs",
+    "test": "node --test scripts/test/*.test.mjs"
   },
   "keywords": [
     "ai",
