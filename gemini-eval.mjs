@@ -137,8 +137,11 @@ const systemPrompt = buildSystemPrompt(ctx);
 
 // --- Evaluate ---
 let evaluationText;
+let usage = { tokens_in: null, tokens_out: null, tokens_total: null };
 try {
-  evaluationText = await callModel({ client, systemPrompt, jdText });
+  const res = await callModel({ client, systemPrompt, jdText });
+  evaluationText = res.text;
+  usage = res.usage;
 } catch (err) {
   console.error('❌  Model call failed:', err.message);
   process.exit(1);
@@ -169,6 +172,15 @@ if (saveReport) {
     console.warn(`⚠️   Could not save report: ${err.message}`);
   }
 }
+
+// --- Observability: emit a machine-parseable usage block (speed/cost trifecta) ---
+console.log('\n---USAGE---');
+console.log(`MODEL: ${modelName}`);
+console.log(`MODEL_VERSION: ${usage.model_version ?? ''}`);
+console.log(`TOKENS_IN: ${usage.tokens_in ?? ''}`);
+console.log(`TOKENS_OUT: ${usage.tokens_out ?? ''}`);
+console.log(`TOKENS_TOTAL: ${usage.tokens_total ?? ''}`);
+console.log('---END_USAGE---');
 
 console.log('\n' + '─'.repeat(66));
 console.log(`  Score: ${summary.score}/5  |  Archetype: ${summary.archetype}  |  Legitimacy: ${summary.legitimacy}`);

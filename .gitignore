@@ -32,6 +32,8 @@ modes/_profile.md
 
 # Generated
 .resolved-prompt-*
+data/*.tsv
+data/*.bak
 node_modules/
 bun.lock
 

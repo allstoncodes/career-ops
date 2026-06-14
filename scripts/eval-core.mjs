@@ -70,16 +70,42 @@ LEGITIMACY: <High Confidence | Proceed with Caution | Suspicious>
 }
 
 /**
- * Call the (injected) generative model and return its text. The client is
- * injected so a mock can stand in for the real Gemini SDK with no network/key.
- * Any object exposing generateContent(parts) -> { response: { text() } } works.
+ * Call the (injected) generative model and return its text + token usage. The
+ * client is injected so a mock can stand in for the real Gemini SDK with no
+ * network/key. Any object exposing generateContent(parts) ->
+ * { response: { text(), usageMetadata? } } works.
+ *
+ * Returns { text, usage } where usage = { tokens_in, tokens_out, tokens_total }
+ * (each null when the provider/mock does not report it).
  */
 export async function callModel({ client, systemPrompt, jdText }) {
   const result = await client.generateContent([
     { text: systemPrompt },
     { text: `\n\nJOB DESCRIPTION TO EVALUATE:\n\n${jdText}` },
   ]);
-  return result.response.text();
+  return { text: result.response.text(), usage: extractUsage(result.response) };
+}
+
+/**
+ * Pull token usage from a model response for observability (the speed/cost/
+ * energy trifecta). Returns null counts when the field is absent (mock client,
+ * older SDKs, or a provider that does not report usage) so callers record
+ * "unknown" rather than a fabricated zero.
+ *
+ * Gemini exposes response.usageMetadata =
+ *   { promptTokenCount, candidatesTokenCount, totalTokenCount }.
+ */
+export function extractUsage(response) {
+  const u = response?.usageMetadata || {};
+  return {
+    tokens_in: u.promptTokenCount ?? null,
+    tokens_out: u.candidatesTokenCount ?? null,
+    tokens_total: u.totalTokenCount ?? null,
+    // The concrete model that actually served the request (e.g. resolves a
+    // moving alias like gemini-flash-latest -> gemini-2.5-flash-002). Null when
+    // the SDK/provider does not report it — never fabricated.
+    model_version: response?.modelVersion ?? null,
+  };
 }
 
 /**
@@ -145,9 +171,15 @@ export function nextReportNumber(reportsDir) {
 
 /**
  * A mock generative client matching the SDK shape, for token-free runs/tests.
+ * Optionally carries usageMetadata so token-capture can be exercised offline.
  */
-export function makeMockClient(fixtureText) {
+export function makeMockClient(fixtureText, usageMetadata = null) {
   return {
-    generateContent: async () => ({ response: { text: () => fixtureText } }),
+    generateContent: async () => ({
+      response: {
+        text: () => fixtureText,
+        ...(usageMetadata ? { usageMetadata } : {}),
+      },
+    }),
   };
 }

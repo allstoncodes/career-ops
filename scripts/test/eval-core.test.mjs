@@ -10,6 +10,7 @@ import {
   nextReportNumber,
   buildSystemPrompt,
   callModel,
+  extractUsage,
   makeMockClient,
 } from '../eval-core.mjs';
 
@@ -82,10 +83,29 @@ test('buildSystemPrompt includes the three context sections and the summary cont
   assert.match(p, /---SCORE_SUMMARY---/);
 });
 
-test('callModel returns the mock client text with no network (token-free)', async () => {
+test('callModel returns the mock client text + null usage with no network (token-free)', async () => {
   const client = makeMockClient('hello from mock');
-  const text = await callModel({ client, systemPrompt: 'sys', jdText: 'jd' });
+  const { text, usage } = await callModel({ client, systemPrompt: 'sys', jdText: 'jd' });
   assert.equal(text, 'hello from mock');
+  assert.equal(usage.tokens_total, null);
+});
+
+test('callModel surfaces token usage when the client reports usageMetadata', async () => {
+  const client = makeMockClient('ok', { promptTokenCount: 1200, candidatesTokenCount: 800, totalTokenCount: 2000 });
+  const { usage } = await callModel({ client, systemPrompt: 'sys', jdText: 'jd' });
+  assert.equal(usage.tokens_in, 1200);
+  assert.equal(usage.tokens_out, 800);
+  assert.equal(usage.tokens_total, 2000);
+});
+
+test('extractUsage maps Gemini usageMetadata; nulls when absent', () => {
+  assert.equal(extractUsage({ usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 } }).tokens_out, 5);
+  assert.equal(extractUsage({}).tokens_total, null);
+});
+
+test('extractUsage carries modelVersion when the response reports it', () => {
+  assert.equal(extractUsage({ usageMetadata: {}, modelVersion: 'gemini-2.5-flash-002' }).model_version, 'gemini-2.5-flash-002');
+  assert.equal(extractUsage({}).model_version, null);
 });
 
 test('renderReport strips ALL summary blocks, even a duplicated one', () => {

@@ -1,0 +1,81 @@
+# model-prices.yml — pricing + energy reference for the eval observability layer.
+#
+# The harness computes per-eval cost from this table (cost = tokens_in/1e6 * in
+# + tokens_out/1e6 * out). Values are USD per 1,000,000 tokens.
+#
+# ⚠️  VERIFY these against the provider's current pricing page before trusting
+#     the cost column — model prices change and this is a hand-entered snapshot,
+#     not a live feed. `actual_billed` reflects what Allston actually pays today
+#     (e.g. Gemini free tier = $0); `list_usd_per_mtok` is the on-paper rate used
+#     for apples-to-apples model comparison.
+#
+# Energy: cloud APIs are NOT client-measurable, so energy_wh stays null for them.
+# Local models record measured energy (powermetrics) in the local-model phase.
+
+defaults:
+  currency: USD
+
+models:
+  gemini-2.0-flash:
+    type: cloud
+    provider: google
+    actual_billed: free        # Allston is on the free tier
+    list_usd_per_mtok:
+      input: 0.10              # VERIFY at ai.google.dev/gemini-api/docs/pricing
+      output: 0.40            # VERIFY — text output rate
+    energy: cloud-not-measurable
+
+  # PINNED model (GEMINI_MODEL in .env). Rates verified 2026-06-14 via
+  # ai.google.dev/gemini-api/docs/pricing.
+  gemini-2.5-flash:
+    type: cloud
+    provider: google
+    actual_billed: free
+    list_usd_per_mtok:
+      input: 0.30
+      output: 2.50
+    energy: cloud-not-measurable
+
+  # Newer flash (launched 2026-05-19). ~5x the 2.5 output rate — a bake-off
+  # candidate, not the default. Verified 2026-06-14 via devtk.ai + simonwillison.net.
+  gemini-3.5-flash:
+    type: cloud
+    provider: google
+    actual_billed: free
+    list_usd_per_mtok:
+      input: 1.50
+      output: 9.00
+      cached_input: 0.15
+    energy: cloud-not-measurable
+
+  # ⚠️ MOVING ALIAS — do NOT pin to this. It hot-swaps to whatever Google ships as
+  # "latest flash" (2-week notice), so cost is not reproducible. As of 2026-06-14
+  # it appeared to resolve to gemini-2.5-flash; we pin the concrete model instead.
+  # Kept only so historical rows tagged with the alias still resolve a rate.
+  gemini-flash-latest:
+    type: cloud
+    provider: google
+    actual_billed: free
+    list_usd_per_mtok:
+      input: 0.30             # assumed == 2.5-flash on 2026-06-14
+      output: 2.50
+    energy: cloud-not-measurable
+
+  # ── Local model placeholders for the bake-off (fill when run on the M4 Pro) ──
+  "qwen2.5:14b":
+    type: local
+    provider: ollama
+    actual_billed: 0           # no API cost — energy is the real cost
+    list_usd_per_mtok:
+      input: 0
+      output: 0
+    energy: measured-powermetrics
+
+  "llama3.1:8b":
+    type: local
+    provider: ollama
+    actual_billed: 0
+    list_usd_per_mtok:
+      input: 0
+      output: 0
+    energy: measured-powermetrics
