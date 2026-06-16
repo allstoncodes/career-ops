@@ -2,7 +2,10 @@
 
 Interactive mode for when the candidate is filling out an application form in Chrome. It reads what is on the screen, loads the previous context of the job, and generates personalized responses for each form question.
 
-> **For live Playwright-MCP form-filling (not just copy-paste):** use the **`fill-application`** skill (`~/.claude/skills/fill-application/`). It drives Playwright MCP to upload the archetype CV + fill the candidate-owned fields from the vault's per-platform adapter doc, then stops at the human gate (never submits). This `apply` mode remains the text-only / draft-the-answers path. (Per ADR #43 — capability-split: Playwright MCP fills, cmux/human watches + submits.)
+> **Apply-layer routing (per ADR `2026-06-16_apply-layer-simplify-primary-routing`):**
+> 1. **Primary (fast/cheap):** Claude opens the role URL in real Chrome (`open -a "Google Chrome" <url>`) + hands over the tailored "why" (this mode drafts it) + `Allston_Fojas_Resume.pdf`; **Allston clicks the Simplify extension** to autofill the mechanical fields, pastes the "why", and submits. Simplify can't write the tailored "why" or pick the CV archetype — that's this mode's job.
+> 2. **Fallback (full Claude-fill):** the **`fill-application`** skill (`~/.claude/skills/fill-application/`) drives Playwright MCP to upload the CV + fill candidate-owned fields from the vault adapter doc, then stops at the human gate. Use when Simplify handles a platform poorly, or you want Claude to do the whole fill.
+> Both paths are human-submit (AGENTS.md). This `apply` mode is the text-draft layer feeding either path.
 
 ## Requirements
 
