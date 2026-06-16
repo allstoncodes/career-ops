@@ -2,6 +2,8 @@
 
 Interactive mode for when the candidate is filling out an application form in Chrome. It reads what is on the screen, loads the previous context of the job, and generates personalized responses for each form question.
 
+> **For live Playwright-MCP form-filling (not just copy-paste):** use the **`fill-application`** skill (`~/.claude/skills/fill-application/`). It drives Playwright MCP to upload the archetype CV + fill the candidate-owned fields from the vault's per-platform adapter doc, then stops at the human gate (never submits). This `apply` mode remains the text-only / draft-the-answers path. (Per ADR #43 — capability-split: Playwright MCP fills, cmux/human watches + submits.)
+
 ## Requirements
 
 - **Best with Playwright in visible mode**: In visible mode, the candidate sees the browser and Claude can interact with the page.
